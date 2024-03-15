@@ -1,0 +1,2 @@
+reflex==0.4.3
+reflex-google-auth
