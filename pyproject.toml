@@ -12,13 +12,14 @@ description = "Reflex custom component google-auth"
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.8"
-authors = [{ name = "Your Name", email = "YOUREMAIL@domain.com" }]
+authors = [{ name = "Masen Furer", email = "m_github@0x26.net" }]
 keywords = [
     "reflex",
     "reflex-custom-components"]
 
 dependencies = [
-    "reflex>=0.4.2"
+    "reflex>=0.4.2",
+    "google-auth[requests]",
 ]
 
 classifiers = [
@@ -26,7 +27,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com"
+Homepage = "https://github.com/martinxu9/reflex-google-auth"
 
 [project.optional-dependencies]
 dev = ["build", "twine"]
