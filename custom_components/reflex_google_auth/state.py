@@ -1,6 +1,7 @@
 """Handle Google Auth."""
 
 import json
+import os
 import time
 
 from google.auth.transport import requests
@@ -8,7 +9,14 @@ from google.oauth2.id_token import verify_oauth2_token
 
 import reflex as rx
 
-from . import google_auth
+
+CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+
+
+def set_client_id(client_id: str):
+    """Set the client id."""
+    global CLIENT_ID
+    CLIENT_ID = client_id
 
 
 class GoogleAuthState(rx.State):
@@ -18,12 +26,16 @@ class GoogleAuthState(rx.State):
         self.id_token_json = json.dumps(id_token)
 
     @rx.cached_var
+    def client_id(self) -> str:
+        return CLIENT_ID
+
+    @rx.cached_var
     def tokeninfo(self) -> dict[str, str]:
         try:
             return verify_oauth2_token(
                 json.loads(self.id_token_json)["credential"],
                 requests.Request(),
-                google_auth.CLIENT_ID,
+                self.client_id,
             )
         except Exception as exc:
             if self.id_token_json:
