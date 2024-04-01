@@ -22,8 +22,7 @@ class GoogleLogin(rx.Component):
     library = "@react-oauth/google"
     tag = "GoogleLogin"
 
-    def get_event_triggers(self):
-        return {"on_success": lambda data: [data]}
+    on_success: rx.EventHandler[lambda data: [data]]
 
     @classmethod
     def create(cls, **props) -> "GoogleLogin":
