@@ -7,18 +7,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reflex-google-auth"
-version = "0.0.4"
-description = "Reflex custom component google-auth"
+version = "0.0.5"
+description = "Sign in with Google"
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.8"
 authors = [{ name = "Masen Furer", email = "m_github@0x26.net" }]
-keywords = [
-    "reflex",
-    "reflex-custom-components"]
+keywords = ["reflex", "reflex-custom-components"]
 
 dependencies = [
-    "reflex>=0.4.6a",
+    "reflex>=0.4.6",
     "google-auth[requests]",
 ]
 
@@ -27,7 +25,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/martinxu9/reflex-google-auth"
+homepage = "https://github.com/masenf/reflex-google-auth"
 
 [project.optional-dependencies]
 dev = ["build", "twine"]
