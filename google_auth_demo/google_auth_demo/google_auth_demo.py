@@ -4,7 +4,7 @@ from reflex_google_auth import GoogleAuthState, require_google_login
 
 
 class State(GoogleAuthState):
-    @rx.cached_var
+    @rx.var(cache=True)
     def protected_content(self) -> str:
         if self.token_is_valid:
             return f"This content can only be viewed by a logged in User. Nice to see you {self.tokeninfo['name']}"

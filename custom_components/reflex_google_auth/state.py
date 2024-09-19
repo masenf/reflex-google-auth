@@ -10,7 +10,7 @@ from google.oauth2.id_token import verify_oauth2_token
 import reflex as rx
 
 
-CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+CLIENT_ID = None
 
 
 def set_client_id(client_id: str):
@@ -25,11 +25,11 @@ class GoogleAuthState(rx.State):
     def on_success(self, id_token: dict):
         self.id_token_json = json.dumps(id_token)
 
-    @rx.cached_var
+    @rx.var(cache=True)
     def client_id(self) -> str:
-        return CLIENT_ID
+        return CLIENT_ID or os.environ.get("GOOGLE_CLIENT_ID", "")
 
-    @rx.cached_var
+    @rx.var(cache=True)
     def tokeninfo(self) -> dict[str, str]:
         try:
             return verify_oauth2_token(
@@ -54,10 +54,10 @@ class GoogleAuthState(rx.State):
         except Exception:
             return False
 
-    @rx.cached_var
+    @rx.var(cache=True)
     def user_name(self) -> str:
         return self.tokeninfo.get("name", "")
 
-    @rx.cached_var
+    @rx.var(cache=True)
     def user_email(self) -> str:
         return self.tokeninfo.get("email", "")
