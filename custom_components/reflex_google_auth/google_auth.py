@@ -18,11 +18,15 @@ class GoogleOAuthProvider(rx.Component):
 google_oauth_provider = GoogleOAuthProvider.create
 
 
+def _on_success_signature(data: rx.Var[dict]) -> tuple[rx.Var[dict]]:
+    return data,
+
+
 class GoogleLogin(rx.Component):
     library = "@react-oauth/google"
     tag = "GoogleLogin"
 
-    on_success: rx.EventHandler[lambda data: [data]]
+    on_success: rx.EventHandler[_on_success_signature]
 
     @classmethod
     def create(cls, **props) -> "GoogleLogin":
