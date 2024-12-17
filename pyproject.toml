@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reflex-google-auth"
-version = "0.0.6"
+version = "0.0.7"
 description = "Sign in with Google"
 readme = "README.md"
 license = { text = "Apache-2.0" }
