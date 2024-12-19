@@ -1,6 +1,10 @@
 import reflex as rx
 
-from reflex_google_auth import GoogleAuthState, require_google_login
+from reflex_google_auth import (
+    GoogleAuthState,
+    handle_google_login,
+    require_google_login,
+)
 
 
 class State(GoogleAuthState):
@@ -11,7 +15,7 @@ class State(GoogleAuthState):
         return "Not logged in."
 
 
-def user_info(tokeninfo: dict) -> rx.Component:
+def user_info(tokeninfo: rx.vars.ObjectVar) -> rx.Component:
     return rx.hstack(
         rx.avatar(
             src=tokeninfo["picture"],
@@ -33,6 +37,7 @@ def index():
         rx.heading("Google OAuth", size="8"),
         rx.link("Protected Page", href="/protected"),
         rx.link("Partially Protected Page", href="/partially-protected"),
+        rx.link("Custom Login Button", href="/custom-button"),
         align="center",
     )
 
@@ -48,7 +53,7 @@ def protected() -> rx.Component:
 
 
 @require_google_login
-def user_name_or_sign_in():
+def user_name_or_sign_in() -> rx.Component:
     return rx.heading(GoogleAuthState.tokeninfo["name"], size="6")
 
 
@@ -61,7 +66,18 @@ def partially_protected() -> rx.Component:
             "you will see a sign in button",
         ),
         user_name_or_sign_in(),
-    ),
+    )
+
+
+@rx.page(route="/custom-button")
+@require_google_login(
+    button=rx.button("Google Login 🚀", on_click=handle_google_login())
+)
+def custom_button() -> rx.Component:
+    return rx.vstack(
+        user_info(GoogleAuthState.tokeninfo),
+        "You clicked a custom button to login, nice",
+    )
 
 
 app = rx.App()

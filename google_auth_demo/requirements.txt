@@ -1,2 +1,2 @@
-reflex>=0.4.3
+reflex>=0.6.6
 reflex-google-auth
