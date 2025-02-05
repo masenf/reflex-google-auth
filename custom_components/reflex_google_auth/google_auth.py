@@ -1,6 +1,6 @@
 from typing import cast
 import reflex as rx
-from reflex.event import EventType, BASE_STATE
+from reflex.event import EventType
 
 from .state import GoogleAuthState
 
@@ -43,11 +43,10 @@ google_login = GoogleLogin.create
 
 
 def handle_google_login(
-    on_success: EventType[[dict], BASE_STATE] = GoogleAuthState.on_success,
+    on_success: EventType[dict] = GoogleAuthState.on_success,
 ) -> rx.Var[rx.EventChain]:
     on_success_event_chain = rx.Var.create(
-        # TODO: rx.EventChain.create(
-        rx.Component()._create_event_chain(
+        rx.EventChain.create(
             value=on_success,  # type: ignore
             args_spec=_on_success_signature,
             key="on_success",
@@ -63,8 +62,8 @@ const login = useGoogleLogin({
   onSuccess: %s,
   flow: 'auth-code',
 });"""
-                % on_success_event_chain: None,
+                % on_success_event_chain: on_success_event_chain._get_all_var_data(),
             },
             imports={LIBRARY: "useGoogleLogin"},
-        ).merge(on_success_event_chain._get_all_var_data()),
+        ),
     )
