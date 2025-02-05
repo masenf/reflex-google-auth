@@ -3,19 +3,39 @@ name: Publish Component to PyPI
 on:
   push:
     tags:
-     - '*'
+      - "*"
 
 jobs:
   publish:
     name: Publish Component to PyPI
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.12'
-    - name: Install package
-      run: pip install .
-    - name: Publish to PyPI
-      run: reflex component publish -t ${{ secrets.PYPI_TOKEN }} --no-share --no-validate-project-info
+      - uses: actions/checkout@master
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.12"
+      - name: Install package
+        run: pip install .
+      - name: Publish to PyPI
+        run: reflex component publish -t ${{ secrets.PYPI_TOKEN }} --no-share --no-validate-project-info
+  deploy:
+    name: Deploy Demo App to Reflex Cloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.12"
+      - name: Set reflex version for deploy
+        run: sed -e "s/^reflex-google-auth[ >=].*$/reflex-google-auth==${{ github.event.release.tag_name }}/" -i google_auth_demo/requirements.txt
+      - name: Deploy to ReflexCloud
+        uses: reflex-dev/reflex-deploy-action@v2
+        with:
+          auth_token: ${{ secrets.REFLEX_AUTH_TOKEN }}
+          project_id: ${{ secrets.REFLEX_PROJECT_ID }}
+          app_directory: google_auth_demo
+          extra_args: ${{ env.EXTRA_ARGS }}
+          dry_run: ${{ vars.DRY_RUN }}
+          skip_checkout: "true"
