@@ -39,7 +39,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Set tagged version for deploy
-        run: sed -E "s/^${{ vars.COMPONENT_NAME }}([ >=].*)?$/${{ vars.COMPONENT_NAME }}==${{ github.event.release.tag_name }}/" -i ${{ vars.APP_DIRECTORY }}/requirements.txt
+        run: sed -E 's/^${{ vars.COMPONENT_NAME }}([ >=].*)?$/${{ vars.COMPONENT_NAME }}==${{ github.event.release.tag_name }}/' -i ${{ vars.APP_DIRECTORY }}/requirements.txt
+      - name: Allow pre-release version of reflex
+        run: sed -E 's/(reflex[ >=].*)/\1 --pre/' -i ${{ vars.APP_DIRECTORY }}/requirements.txt
       - name: Wait for package to become available
         uses: databutton/wait-for-pypi@main
         with:
