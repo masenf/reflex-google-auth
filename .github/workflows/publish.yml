@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: "3.12"
-      - name: Set reflex version for deploy
+      - name: Set tagged version for deploy
         run: sed -e "s/^reflex-google-auth[ >=].*$/reflex-google-auth==${{ github.event.release.tag_name }}/" -i google_auth_demo/requirements.txt
       - name: Deploy to ReflexCloud
         uses: reflex-dev/reflex-deploy-action@v2
