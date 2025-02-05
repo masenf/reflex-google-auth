@@ -1,13 +1,13 @@
 [build-system]
 requires = [
-    "setuptools",
+    "setuptools>=64",
+    "setuptools_scm>=8",
     "wheel",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "reflex-google-auth"
-version = "0.0.8"
 description = "Sign in with Google"
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -23,6 +23,7 @@ dependencies = [
 classifiers = [
   "Development Status :: 4 - Beta",
 ]
+dynamic = ["version"]
 
 [project.urls]
 homepage = "https://github.com/masenf/reflex-google-auth"
@@ -32,3 +33,5 @@ dev = ["build", "twine"]
 
 [tool.setuptools.packages.find]
 where = ["custom_components"]
+
+[tool.setuptools_scm]
