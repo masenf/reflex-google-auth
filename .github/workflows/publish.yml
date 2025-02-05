@@ -39,6 +39,6 @@ jobs:
           auth_token: ${{ secrets.REFLEX_AUTH_TOKEN }}
           project_id: ${{ secrets.REFLEX_PROJECT_ID }}
           app_directory: google_auth_demo
-          extra_args: ${{ env.EXTRA_ARGS }}
+          extra_args: "--hostname google-auth-demo --env GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} --env GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} --env GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}"
           dry_run: ${{ vars.DRY_RUN }}
           skip_checkout: "true"
