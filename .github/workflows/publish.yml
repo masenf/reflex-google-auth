@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Set tagged version for deploy
-        run: sed -e "s/^reflex-google-auth[ >=].*$/reflex-google-auth==${{ github.event.release.tag_name }}/" -i google_auth_demo/requirements.txt
+        run: sed -E "s/^reflex-google-auth([ >=].*)?$/reflex-google-auth==${{ github.event.release.tag_name }}/" -i google_auth_demo/requirements.txt
       - name: Deploy to ReflexCloud
         uses: reflex-dev/reflex-deploy-action@v2
         with:
