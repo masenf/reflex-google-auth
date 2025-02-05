@@ -17,6 +17,8 @@ jobs:
           python-version: "3.12"
       - name: Install package
         run: pip install .
+      - name: Install latest reflex
+        run: pip install 'git+https://github.com/reflex-dev/reflex@masenf/custom-component-publish-dynamic-version'
       - name: Publish to PyPI
         run: reflex component publish -t ${{ secrets.PYPI_TOKEN }} --no-share --no-validate-project-info
   deploy:
