@@ -1,13 +1,17 @@
-name: Publish Component to PyPI
+name: Publish Component and Deploy Demo App
 
 on:
   release:
     types: [published]
+          
+env:
+  EXTRA_ARGS: "--hostname ${{ vars.HOSTNAME }} --env GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} --env GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} --env GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}"
 
 jobs:
   publish:
     name: Publish Component to PyPI
     runs-on: ubuntu-latest
+    if: ${{ secrets.PYPI_TOKEN != '' }}
     steps:
       - uses: actions/checkout@master
       - name: Set up Python 3.12
@@ -24,6 +28,7 @@ jobs:
     name: Deploy Demo App to Reflex Cloud
     runs-on: ubuntu-latest
     needs: publish
+    if: ${{ secrets.REFLEX_AUTH_TOKEN != '' }}
     steps:
       - uses: actions/checkout@master
       - name: Set up Python 3.12
@@ -31,13 +36,13 @@ jobs:
         with:
           python-version: "3.12"
       - name: Set tagged version for deploy
-        run: sed -E "s/^reflex-google-auth([ >=].*)?$/reflex-google-auth==${{ github.event.release.tag_name }}/" -i google_auth_demo/requirements.txt
+        run: sed -E "s/^${{ vars.COMPONENT_NAME }}([ >=].*)?$/${{ vars.COMPONENT_NAME }}==${{ github.event.release.tag_name }}/" -i ${{ vars.APP_DIRECTORY }}/requirements.txt
       - name: Deploy to ReflexCloud
         uses: reflex-dev/reflex-deploy-action@v2
         with:
           auth_token: ${{ secrets.REFLEX_AUTH_TOKEN }}
           project_id: ${{ secrets.REFLEX_PROJECT_ID }}
-          app_directory: google_auth_demo
-          extra_args: "--hostname google-auth-demo --env GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} --env GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} --env GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}"
+          app_directory: ${{ vars.APP_DIRECTORY }}
+          extra_args: ${{ env.EXTRA_ARGS }}
           dry_run: ${{ vars.DRY_RUN }}
           skip_checkout: "true"
