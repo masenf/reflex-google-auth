@@ -40,6 +40,11 @@ jobs:
           python-version: "3.12"
       - name: Set tagged version for deploy
         run: sed -E "s/^${{ vars.COMPONENT_NAME }}([ >=].*)?$/${{ vars.COMPONENT_NAME }}==${{ github.event.release.tag_name }}/" -i ${{ vars.APP_DIRECTORY }}/requirements.txt
+      - name: Wait for package to become available
+        uses: databutton/wait-for-pypi@main
+        with:
+          package_name: ${{ vars.COMPONENT_NAME}}
+          package_version: ${{ github.event.release.tag_name }}
       - name: Deploy to ReflexCloud
         uses: reflex-dev/reflex-deploy-action@v2
         if: ${{ env.HAS_REFLEX_AUTH_TOKEN == 'true' }}
