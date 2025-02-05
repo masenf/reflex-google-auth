@@ -24,6 +24,7 @@ jobs:
   deploy:
     name: Deploy Demo App to Reflex Cloud
     runs-on: ubuntu-latest
+    needs: publish
     steps:
       - uses: actions/checkout@master
       - name: Set up Python 3.12
