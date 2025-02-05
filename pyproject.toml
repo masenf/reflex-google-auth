@@ -11,12 +11,12 @@ version = "0.0.8"
 description = "Sign in with Google"
 readme = "README.md"
 license = { text = "Apache-2.0" }
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [{ name = "Masen Furer", email = "m_github@0x26.net" }]
 keywords = ["reflex", "reflex-custom-components"]
 
 dependencies = [
-    "reflex>=0.6.6",
+    "reflex>=0.7.0a2",
     "google-auth[requests]",
 ]
 

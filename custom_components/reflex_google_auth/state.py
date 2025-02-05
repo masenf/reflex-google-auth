@@ -80,7 +80,7 @@ class GoogleAuthState(rx.State):
     def logout(self):
         self.id_token_json = ""
 
-    @rx.var
+    @rx.var(cache=False)
     def token_is_valid(self) -> bool:
         try:
             return bool(
