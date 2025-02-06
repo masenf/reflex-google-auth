@@ -32,3 +32,17 @@ dev = ["build", "twine"]
 
 [tool.setuptools.packages.find]
 where = ["custom_components"]
+
+[tool.ruff]
+target-version = "py310"
+output-format = "concise"
+lint.isort.split-on-trailing-comma = false
+lint.select = ["B", "C4", "E", "ERA", "F", "FURB", "I", "N", "PERF", "PTH", "RUF", "SIM", "T", "TRY", "W"]
+lint.ignore = ["B008", "D205", "E501", "F403", "SIM115", "RUF006", "RUF008", "RUF012", "TRY0"]
+lint.pydocstyle.convention = "google"
+include = ["custom_components/**/*.py", "*_demo/**/*.py"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"env.py" = ["ALL"]
+"*/alembic/*" = ["ALL"]
