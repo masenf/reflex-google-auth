@@ -16,5 +16,5 @@ jobs:
         with:
           python-version: "3.12"
       - run: |
-          pip install pre-commit
+          pip install pre-commit pyright
           pre-commit run --all-files
