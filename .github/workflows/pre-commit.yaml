@@ -16,5 +16,5 @@ jobs:
         with:
           python-version: "3.12"
       - run: |
-          pip install pre-commit pyright . -r*_demo/requirements.txt
+          pip install pre-commit pyright . -r${{ env.APP_DIRECTORY }}/requirements.txt
           pre-commit run --all-files
