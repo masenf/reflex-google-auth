@@ -4,12 +4,10 @@ import json
 import os
 import time
 
+import reflex as rx
 from google.auth.transport import requests
 from google.oauth2.id_token import verify_oauth2_token
 from httpx import AsyncClient
-
-import reflex as rx
-
 
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
@@ -72,7 +70,7 @@ class GoogleAuthState(rx.State):
             )
         except Exception as exc:
             if self.id_token_json:
-                print(f"Error verifying token: {exc!r}")
+                print(f"Error verifying token: {exc!r}")  # noqa: T201
                 self.id_token_json = ""
         return {}
 
