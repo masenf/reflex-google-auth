@@ -45,6 +45,8 @@ jobs:
         with:
           package_name: ${{ vars.COMPONENT_NAME}}
           package_version: ${{ github.event.release.tag_name }}
+          timeout: 120
+          delay_between_requests: 5
       - name: Deploy to ReflexCloud
         uses: reflex-dev/reflex-deploy-action@v2
         if: ${{ env.HAS_REFLEX_AUTH_TOKEN == 'true' }}
