@@ -41,12 +41,12 @@ jobs:
       - name: Allow pre-release version of reflex
         run: sed -E 's/(reflex[ >=][^a]*$)/\1a/' -i ${{ vars.APP_DIRECTORY }}/requirements.txt
       - name: Wait for package to become available
-        uses: databutton/wait-for-pypi-action@main
+        uses: databutton/wait-for-pypi-action@7577e731d445ff9520bff7b8feda31ea12d93b52
         with:
           package_name: ${{ vars.COMPONENT_NAME}}
           package_version: ${{ github.event.release.tag_name }}
-          timeout: 120
-          delay_between_requests: 5
+          timeout: "120"
+          delay_between_requests: "5"
       - name: Deploy to ReflexCloud
         uses: reflex-dev/reflex-deploy-action@v2
         if: ${{ env.HAS_REFLEX_AUTH_TOKEN == 'true' }}
