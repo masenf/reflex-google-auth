@@ -5,7 +5,7 @@ on:
     types: [published]
           
 env:
-  EXTRA_ARGS: "--hostname ${{ vars.HOSTNAME }} --env GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} --env GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} --env GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}"
+  EXTRA_ARGS: "--hostname ${{ vars.HOSTNAME }} --env GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} --env GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} --env GOOGLE_REDIRECT_URI=${{ vars.GOOGLE_REDIRECT_URI }}"
 
 jobs:
   publish:
