@@ -15,6 +15,5 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: "3.12"
-      - run: |
-          pip install pre-commit pyright . -r${{ vars.APP_DIRECTORY }}/requirements.txt
-          pre-commit run --all-files
+      - run: pip install pre-commit pyright . -r${{ vars.APP_DIRECTORY }}/requirements.txt
+      - run: pre-commit run --all-files
