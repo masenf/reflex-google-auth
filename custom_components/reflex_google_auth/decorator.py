@@ -6,7 +6,6 @@ import reflex as rx
 from . import google_auth
 from .state import GoogleAuthState
 
-
 ComponentCallable = Callable[[], rx.Component]
 
 

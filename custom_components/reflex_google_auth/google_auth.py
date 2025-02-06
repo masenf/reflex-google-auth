@@ -1,9 +1,9 @@
 from typing import cast
+
 import reflex as rx
 from reflex.event import EventType
 
 from .state import GoogleAuthState
-
 
 LIBRARY = "@react-oauth/google"
 
