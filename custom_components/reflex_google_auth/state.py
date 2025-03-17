@@ -3,6 +3,7 @@
 import json
 import os
 import time
+from typing import TypedDict
 
 import reflex as rx
 from google.auth.transport import requests
@@ -19,6 +20,24 @@ def set_client_id(client_id: str):
     """Set the client id."""
     global CLIENT_ID
     CLIENT_ID = client_id
+
+
+class TokenCredential(TypedDict, total=False):
+    iss: str
+    azp: str
+    aud: str
+    sub: str
+    hd: str
+    email: str
+    email_verified: bool
+    nbf: int
+    name: str
+    picture: str
+    given_name: str
+    family_name: str
+    iat: int
+    exp: int
+    jti: str
 
 
 async def get_id_token(auth_code) -> str:
@@ -61,7 +80,7 @@ class GoogleAuthState(rx.State):
         return CLIENT_ID or os.environ.get("GOOGLE_CLIENT_ID", "")
 
     @rx.var(cache=True)
-    def tokeninfo(self) -> dict[str, str]:
+    def tokeninfo(self) -> TokenCredential:
         try:
             return verify_oauth2_token(
                 json.loads(self.id_token_json)["credential"],
