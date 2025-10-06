@@ -22,6 +22,15 @@ def set_client_id(client_id: str):
     CLIENT_ID = client_id
 
 
+class TokenResponse(TypedDict, total=False):
+    access_token: str
+    expires_in: int
+    refresh_token: str
+    scope: str
+    token_type: str
+    id_token: str
+
+
 class TokenCredential(TypedDict, total=False):
     iss: str
     azp: str
@@ -30,6 +39,7 @@ class TokenCredential(TypedDict, total=False):
     hd: str
     email: str
     email_verified: bool
+    at_hash: str
     nbf: int
     name: str
     picture: str
@@ -40,14 +50,14 @@ class TokenCredential(TypedDict, total=False):
     jti: str
 
 
-async def get_id_token(auth_code) -> str:
-    """Get the id token credential from an auth code.
+async def get_token(auth_code) -> TokenResponse:
+    """Get the token(s) from an auth code.
 
     Args:
         auth_code: Returned from an 'auth-code' flow.
 
     Returns:
-        The id token credential.
+        The token response, containing access_token, refresh_token and id_token.
     """
     async with AsyncClient() as client:
         response = await client.post(
@@ -62,40 +72,119 @@ async def get_id_token(auth_code) -> str:
         )
         response.raise_for_status()
         response_data = response.json()
-        return response_data.get("id_token")
+        return TokenResponse(response_data)
+
+
+async def get_id_token(auth_code: str) -> str:
+    token_data = await get_token(auth_code)
+    if "id_token" not in token_data:
+        raise ValueError("No id_token in token response")
+    return token_data["id_token"]
 
 
 class GoogleAuthState(rx.State):
-    id_token_json: str = rx.LocalStorage()
+    token_response_json: str = rx.LocalStorage()
+    refresh_token: str = rx.LocalStorage()
+
+    @rx.var
+    def id_token_json(self) -> str:
+        """For compatibility only. Use token_response_json instead."""
+        try:
+            return json.dumps({"credential": json.loads(self.token_response_json).get("id_token", "")})
+        except Exception:
+            return ""
 
     @rx.event
-    async def on_success(self, id_token: dict):
-        if "code" in id_token:
+    async def on_success(self, response: dict):
+        if "code" in response:
             # Handle auth-code flow
-            id_token["credential"] = await get_id_token(id_token["code"])
-        self.id_token_json = json.dumps(id_token)
+            token_response = await get_token(response["code"])
+            self.token_response_json = json.dumps(token_response)
+            if "refresh_token" in token_response:
+                self.refresh_token = token_response["refresh_token"]
+        elif "credential" in response:
+            # Handle id-token flow
+            self.token_response_json = json.dumps({"id_token": response["credential"]})
+            self.refresh_token = ""
+        else:
+            self.token_response_json = ""
+            self.refresh_token = ""
+            raise ValueError("No code or credential in response")
+
+    @rx.event
+    async def refresh_access_token(self):
+        try:
+            if not self.access_token:
+                return  # no token to refresh
+            if not self.refresh_token:
+                # token not available, must re-auth
+                self.token_response_json = ""
+                return
+            async with AsyncClient() as client:
+                response = await client.post(
+                    TOKEN_URI,
+                    data={
+                        "client_id": CLIENT_ID,
+                        "client_secret": CLIENT_SECRET,
+                        "refresh_token": self.refresh_token,
+                        "grant_type": "refresh_token",
+                    },
+                )
+                response.raise_for_status()
+                new_token_data = response.json()
+                # Save the new refresh token if provided
+                if "refresh_token" in new_token_data:
+                    self.refresh_token = new_token_data["refresh_token"]
+                self.token_response_json = json.dumps(new_token_data)
+        except Exception as exc:
+            print(f"Error refreshing token: {exc!r}")  # noqa: T201
 
     @rx.var(cache=True)
     def client_id(self) -> str:
         return CLIENT_ID or os.environ.get("GOOGLE_CLIENT_ID", "")
 
+    @rx.var
+    def scopes(self) -> list[str]:
+        try:
+            scope_str = json.loads(self.token_response_json).get("scope", "")
+            return scope_str.split(" ") if scope_str else []
+        except Exception:
+            return []
+
+    @rx.var
+    def access_token(self) -> str:
+        try:
+            return json.loads(self.token_response_json).get("access_token", "")
+        except Exception:
+            return ""
+
+    @rx.var
+    def id_token(self) -> str:
+        try:
+            return json.loads(self.token_response_json).get("id_token", "")
+        except Exception:
+            return ""
+
     @rx.var(cache=True)
     def tokeninfo(self) -> TokenCredential:
         try:
-            return verify_oauth2_token(
-                json.loads(self.id_token_json)["credential"],
-                requests.Request(),
-                self.client_id,
+            return TokenCredential(
+                verify_oauth2_token(
+                    self.id_token,
+                    requests.Request(),
+                    self.client_id,
+                )
             )
         except Exception as exc:
-            if self.id_token_json:
+            if self.token_response_json:
                 print(f"Error verifying token: {exc!r}")  # noqa: T201
-                self.id_token_json = ""
+                self.token_response_json = ""
         return {}
 
     @rx.event
     def logout(self):
-        self.id_token_json = ""
+        self.token_response_json = ""
+        self.refresh_token = ""
 
     @rx.var(cache=False)
     def token_is_valid(self) -> bool:
