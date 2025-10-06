@@ -111,7 +111,7 @@ class DriveState(rx.State):
         )
         items = results.get("files", [])
         if not items:
-            print("No files found.")
+            print("No files found.")  # noqa: T201
             return None
         return items[0]
 
@@ -152,7 +152,7 @@ class DriveState(rx.State):
                 .create(body=file_metadata, media_body=upload_content, fields="id")
                 .execute
             )
-        print(f"File ID: {file.get('id')}")
+        print(f"File ID: {file.get('id')}")  # noqa: T201
 
     async def _load_file_from_drive(self) -> str:
         google_auth_state = await self.get_state(GoogleAuthState)
@@ -177,7 +177,7 @@ class DriveState(rx.State):
             while done is False:
                 status, done = await rx.run_in_thread(downloader.next_chunk)
         except HttpError as error:
-            print(f"An error occurred: {error}")
+            print(f"An error occurred: {error}")  # noqa: T201
             file = None
         if file:
             file.seek(0)

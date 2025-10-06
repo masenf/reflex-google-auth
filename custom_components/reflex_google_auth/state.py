@@ -90,7 +90,9 @@ class GoogleAuthState(rx.State):
     def id_token_json(self) -> str:
         """For compatibility only. Use token_response_json instead."""
         try:
-            return json.dumps({"credential": json.loads(self.token_response_json).get("id_token", "")})
+            return json.dumps(
+                {"credential": json.loads(self.token_response_json).get("id_token", "")}
+            )
         except Exception:
             return ""
 
