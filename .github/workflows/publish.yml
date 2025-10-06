@@ -19,8 +19,6 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.12"
-      - name: Install package
-        run: pip install .
       - name: Publish to PyPI
         if: ${{ env.HAS_PYPI_TOKEN == 'true' }}
         run: uv build && uv publish -u __token__ -p ${{ secrets.PYPI_TOKEN }}
