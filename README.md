@@ -110,3 +110,18 @@ def custom_button() -> rx.Component:
         f"{GoogleAuthState.tokeninfo['email']} clicked a custom button to login, nice",
     )
 ```
+
+### Requesting Scopes
+
+By default, only the basic profile scopes are requested. To request additional
+scopes for accessing other Google APIs in the context of the authenticated user:
+
+1. Update your app registration in the Google Cloud Console to add the additional scopes
+   you want to request.
+2. Pass the `scope` parameter to `handle_google_login` event handler. NOTE:
+   scopes can only be requested with the `auth-code` flow, so you must set
+   `GOOGLE_CLIENT_SECRET` and `GOOGLE_REDIRECT_URI` environment variables as
+   described above.
+
+See the `custom_scope` example in `google_auth_demo.py` for how to request
+Drive scopes and and then use Google Drive API to store and retrieve app data.
