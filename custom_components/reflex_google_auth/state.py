@@ -8,7 +8,7 @@ from typing import TypedDict
 import reflex as rx
 from google.auth.transport import requests
 from google.oauth2.id_token import verify_oauth2_token
-from httpx import AsyncClient
+from httpx2 import AsyncClient
 
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
