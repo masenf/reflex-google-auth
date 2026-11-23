@@ -50,3 +50,80 @@ include = ["custom_components/**/*.py", "*_demo/**/*.py"]
 "*/alembic/*" = ["ALL"]
 
 [tool.setuptools_scm]
+# publish.yml tags the checkout locally and builds from it, so the version comes
+# from the `v<version>` tag. The fallback only applies when building outside a
+# git checkout; verify-dist fails the release if it ever reaches an artifact.
+fallback_version = "0.0.0.dev0"
+
+[tool.reflex-release]
+# reflex-release is not on PyPI yet, so the release path is pinned to the exact
+# commit it was scaffolded from rather than to a branch, which would resolve
+# whatever happened to be newest at release time. Once it publishes, this
+# becomes `uvx reflex-release@<version>`; either way, re-run
+# `reflex-release sync` after changing it — the pull-request drift check fails
+# until the generated workflows match.
+cli-command = 'uvx --from "reflex-release @ git+https://github.com/reflex-dev/reflex@1613d415c8d443cdd81d097fd08ae02213dfe04f#subdirectory=packages/reflex-release" reflex-release'
+# Stated explicitly rather than left to the tool's default, which is a
+# security-relevant policy and has already changed once between versions. True
+# is GitHub's own behavior: the pypi environment's reviewer list decides who may
+# release, and one of them can carry a release through end to end. That is the
+# workable setting for a repository with a single maintainer — requiring a
+# second approver would leave releases permanently stuck. Set it to false to
+# require two people, which also makes publish.yml assert that the pypi
+# environment has 'Prevent self-review' enabled.
+allow-self-review = true
+root-package = "reflex-google-auth"
+# The component does not use a src/ layout and the import package sits one level
+# down, so the source directory has to be named explicitly: without this the
+# pull-request check would never require a news fragment for a library change.
+root-source-dirs = ["custom_components"]
+# Tags and changelog dates have always been stamped in the maintainer's local
+# time; keep them there so an evening release is not dated tomorrow.
+release-timezone = "America/Los_Angeles"
+
+[tool.towncrier]
+# One shared configuration for every package: each invocation passes
+# --dir <package path> to target a specific package's news/ directory.
+# https://towncrier.readthedocs.io/en/stable/monorepo.html
+package = ""
+name = ""
+directory = "news"
+filename = "CHANGELOG.md"
+title_format = "## {version} ({project_date})"
+issue_format = "[#{issue}](https://github.com/masenf/reflex-google-auth/issues/{issue})"
+start_string = "<!-- towncrier release notes start -->\n"
+
+[[tool.towncrier.type]]
+directory = "breaking"
+name = "Breaking Changes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "deprecation"
+name = "Deprecations"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "feature"
+name = "Features"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug Fixes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "performance"
+name = "Performance"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "docs"
+name = "Documentation"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "misc"
+name = "Miscellaneous"
+showcontent = true
