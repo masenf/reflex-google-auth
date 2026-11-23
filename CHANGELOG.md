@@ -10,6 +10,13 @@ written; alpha releases are omitted.
 
 <!-- towncrier release notes start -->
 
+## v0.2.1 (2026-11-23)
+
+### Bug Fixes
+
+- Declare `httpx2>=2.12.0` as a dependency and use it to exchange the auth code. The package previously imported `httpx` without declaring it, relying on Reflex to install it, which newer Reflex versions no longer do. ([#17](https://github.com/masenf/reflex-google-auth/issues/17))
+
+
 ## v0.2.0 (2025-10-13)
 
 ### Features
