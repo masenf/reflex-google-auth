@@ -125,3 +125,50 @@ scopes for accessing other Google APIs in the context of the authenticated user:
 
 See the `custom_scope` example in `google_auth_demo.py` for how to request
 Drive scopes and and then use Google Drive API to store and retrieve app data.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+## Contributing
+
+Every pull request that changes `custom_components/` needs a news fragment — a
+short markdown file under `news/`, named `<pr-number>.<type>.md`, written for
+someone reading release notes:
+
+```bash
+uvx --from "reflex-release @ git+https://github.com/reflex-dev/reflex@1613d415c8d443cdd81d097fd08ae02213dfe04f#subdirectory=packages/reflex-release" \
+  reflex-release create 123.bugfix.md
+```
+
+The types are `breaking`, `deprecation`, `feature`, `bugfix`, `performance`,
+`docs` and `misc`. Before the PR number is known, name the file
+`+something.bugfix.md` and rename it later. The `skip-changelog` label waives
+the requirement for changes that are not user-facing.
+
+Do not edit `CHANGELOG.md` by hand: a new version heading on `main` is what
+triggers a publish, so CI rejects headings that were not written by the release
+workflow.
+
+## Releasing
+
+Releases are changelog-driven, via
+[reflex-release](https://github.com/reflex-dev/reflex/tree/main/packages/reflex-release).
+
+1. Run **Dispatch release** from the Actions tab and pick an action
+   (`release-patch`/`-minor`/`-major`, `release-post`, or one of the
+   prerelease actions). It runs towncrier over `news/`, writes the new
+   `CHANGELOG.md` section, and opens a pull request.
+2. Merge that pull request. The push to `main` is what publishes: **Release
+   from changelog** finds the changelog version that has no git tag, builds it,
+   and waits for approval on the `pypi` environment before uploading.
+3. After a successful upload the tag and GitHub release are created, and
+   **Deploy demo app** redeploys `google_auth_demo` against the new version.
+
+Because tags are only created after a successful upload, a failed release is
+retried by pushing a fix on top of the changelog bump — there is nothing to
+clean up.
+
+Upgrading the release tooling is a `cli-command` bump in `pyproject.toml`
+followed by `reflex-release sync`; the pull-request check fails while the
+generated workflows are out of date.

@@ -1,0 +1,143 @@
+name: Deploy Demo App
+
+run-name: >-
+  Deploy demo app ${{ inputs.version || format('after {0}', github.event.workflow_run.display_title) }}
+
+# Deploys google_auth_demo to Reflex Cloud against a freshly published
+# version of reflex-google-auth.
+#
+# This used to be a job in publish.yml triggered by `on: release: published`.
+# reflex-release now owns publish.yml and creates the tag and GitHub release
+# with GITHUB_TOKEN — and events produced by GITHUB_TOKEN deliberately do not
+# start new workflow runs, so neither `release: published` nor `push: tags`
+# would ever fire here. `workflow_run` is the one trigger that still fires for
+# a run started by another workflow.
+#
+# Both publishing entry points are watched: "Release from changelog" (the
+# normal path, which calls publish.yml as a reusable workflow and so is the
+# only run that exists) and "Publish to PyPI" (a direct manual dispatch of
+# publish.yml, which is its own top-level run). A reusable workflow never
+# creates a second run, so these cannot both fire for one publish.
+
+on:
+  workflow_run:
+    workflows: ["Release from changelog", "Publish to PyPI"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Published version to deploy (e.g. 0.2.1, no v prefix)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-demo
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy Demo App to Reflex Cloud
+    # Only deploy behind a successful publish. A dispatched run has no
+    # workflow_run payload, so the conclusion check is skipped for it.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    env:
+      # The `secrets` context is not available in `if:` conditions, so the
+      # presence of the deploy token is hoisted into `env` to gate the step.
+      HAS_REFLEX_AUTH_TOKEN: ${{ secrets.REFLEX_AUTH_TOKEN != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # The commit the publish ran against, so the tag it pushed is
+          # reachable here. Tags and full history are needed to read it back.
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      # publish.yml pushes `v<version>` pointing at the commit it built, so the
+      # tag on this commit is the version that was just published. No tag means
+      # the run published nothing (a no-op detect, or a skipped build) and there
+      # is nothing new to deploy.
+      - name: Resolve published version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          # A dispatched version is an explicit instruction — deploy whatever it
+          # names, prerelease included. An automatic run is not: it takes the
+          # version from the tag and declines prereleases.
+          if [[ -n "$INPUT_VERSION" ]]; then
+            version="${INPUT_VERSION#v}"
+          else
+            tag=$(git tag --points-at HEAD --list 'v*' | sort -V | tail -n1)
+            if [[ -z "$tag" ]]; then
+              echo "No v* tag on $(git rev-parse HEAD); nothing was published."
+              echo "deploy=false" >>"$GITHUB_OUTPUT"
+              exit 0
+            fi
+            version="${tag#v}"
+            if [[ "$version" =~ [a-zA-Z] ]]; then
+              echo "$version is a prerelease; not deploying the demo."
+              echo "deploy=false" >>"$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "Deploying demo against version $version"
+          echo "version=$version" >>"$GITHUB_OUTPUT"
+          echo "deploy=true" >>"$GITHUB_OUTPUT"
+
+      - name: Set up Python 3.12
+        if: steps.version.outputs.deploy == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Pin the component to the published version
+        if: steps.version.outputs.deploy == 'true'
+        env:
+          COMPONENT_NAME: ${{ vars.COMPONENT_NAME }}
+          APP_DIRECTORY: ${{ vars.APP_DIRECTORY }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          sed -E "s/^${COMPONENT_NAME}([ >=].*)?$/${COMPONENT_NAME}==${VERSION}/" \
+            -i "${APP_DIRECTORY}/requirements.txt"
+
+      - name: Allow pre-release version of reflex
+        if: steps.version.outputs.deploy == 'true'
+        env:
+          APP_DIRECTORY: ${{ vars.APP_DIRECTORY }}
+        run: sed -E 's/(reflex[ >=][^a]*$)/\1a/' -i "${APP_DIRECTORY}/requirements.txt"
+
+      - name: Wait for package to become available
+        if: steps.version.outputs.deploy == 'true'
+        uses: masenf/wait-for-pypi-action@main
+        with:
+          package_name: ${{ vars.COMPONENT_NAME }}
+          package_version: ${{ steps.version.outputs.version }}
+          timeout: "120"
+          delay_between_requests: "5"
+
+      - name: Deploy to ReflexCloud
+        if: steps.version.outputs.deploy == 'true' && env.HAS_REFLEX_AUTH_TOKEN == 'true'
+        uses: reflex-dev/reflex-deploy-action@v2
+        with:
+          auth_token: ${{ secrets.REFLEX_AUTH_TOKEN }}
+          project_id: ${{ secrets.REFLEX_PROJECT_ID }}
+          app_directory: ${{ vars.APP_DIRECTORY }}
+          extra_args: >-
+            --hostname ${{ vars.HOSTNAME }}
+            --env GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            --env GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            --env GOOGLE_REDIRECT_URI=${{ vars.GOOGLE_REDIRECT_URI }}
+          dry_run: ${{ vars.DRY_RUN }}
+          skip_checkout: "true"
