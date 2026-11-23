@@ -62,9 +62,9 @@ def handle_google_login(
             key="on_success",
         )
     )
-    scope = rx.Var.create(scope) if not isinstance(scope, rx.Var) else scope
-    if isinstance(scope, rx.vars.ArrayVar):
-        scope = scope.join(" ")
+    scope_var: rx.Var = rx.Var.create(scope) if not isinstance(scope, rx.Var) else scope
+    if isinstance(scope_var, rx.vars.ArrayVar):
+        scope_var = scope_var.join(" ")
     return rx.Var(
         "() => login()",
         _var_type=rx.EventChain,
@@ -76,9 +76,9 @@ const login = useGoogleLogin({
   flow: 'auth-code',
   scope: %s,
 });"""
-                % (on_success_event_chain, scope): rx.vars.VarData.merge(
+                % (on_success_event_chain, scope_var): rx.vars.VarData.merge(
                     on_success_event_chain._get_all_var_data(),
-                    scope._get_all_var_data(),
+                    scope_var._get_all_var_data(),
                 ),
             },
             imports={LIBRARY: "useGoogleLogin"},

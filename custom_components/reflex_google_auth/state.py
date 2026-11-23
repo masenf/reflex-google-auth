@@ -171,7 +171,7 @@ class GoogleAuthState(rx.State):
     def tokeninfo(self) -> TokenCredential:
         try:
             return TokenCredential(
-                verify_oauth2_token(
+                **verify_oauth2_token(
                     self.id_token,
                     requests.Request(),
                     self.client_id,
